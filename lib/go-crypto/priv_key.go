@@ -18,10 +18,10 @@ import (
 	"bytes"
 
 	secp256k1 "github.com/btcsuite/btcd/btcec"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/ed25519"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/ed25519/extra25519"
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
+	"github.com/annchain/ann-module/lib/ed25519"
+	"github.com/annchain/ann-module/lib/ed25519/extra25519"
+	. "github.com/annchain/ann-module/lib/go-common"
+	"github.com/annchain/ann-module/lib/go-wire"
 )
 
 // PrivKey is part of PrivAccount and state.PrivValidator.

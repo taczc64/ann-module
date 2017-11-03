@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 func TestParse(t *testing.T) {

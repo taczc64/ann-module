@@ -22,7 +22,7 @@ import (
 	"testing"
 	"time"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 type SimpleStruct struct {

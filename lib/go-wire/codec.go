@@ -22,7 +22,7 @@ import (
 	"reflect"
 	"time"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 type Encoder func(o interface{}, w io.Writer, n *int, err *error)

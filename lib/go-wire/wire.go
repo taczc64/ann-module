@@ -21,7 +21,7 @@ import (
 	"io"
 	"reflect"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 var ErrBinaryReadOverflow = errors.New("Error: binary read overflow")

@@ -22,7 +22,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 func init() {

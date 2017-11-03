@@ -14,7 +14,7 @@ import (
 	"crypto/subtle"
 	"io"
 
-	"gitlab.zhonganonline.com/ann/ann-module/lib/ed25519/edwards25519"
+	"github.com/annchain/ann-module/lib/ed25519/edwards25519"
 )
 
 const (

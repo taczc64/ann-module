@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 /* AutoFile usage

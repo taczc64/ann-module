@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 func BenchmarkRandomReadsWrites2(b *testing.B) {

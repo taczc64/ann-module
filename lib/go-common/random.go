@@ -141,7 +141,7 @@ func RandBytes(n int) []byte {
 
 // NOTE: This relies on the os's random number generator.
 // For real security, we should salt that with some seed.
-// See gitlab.zhonganonline.com/ann/ann-module/lib/go-crypto for a more secure reader.
+// See github.com/annchain/ann-module/lib/go-crypto for a more secure reader.
 func cRandBytes(numBytes int) []byte {
 	b := make([]byte, numBytes)
 	_, err := crand.Read(b)

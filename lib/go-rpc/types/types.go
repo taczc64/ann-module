@@ -18,8 +18,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-events"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
+	"github.com/annchain/ann-module/lib/go-events"
+	"github.com/annchain/ann-module/lib/go-wire"
 )
 
 type RPCRequest struct {

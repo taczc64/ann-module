@@ -14,7 +14,7 @@
 
 package db
 
-import . "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+import . "github.com/annchain/ann-module/lib/go-common"
 
 type DB interface {
 	Get([]byte) []byte

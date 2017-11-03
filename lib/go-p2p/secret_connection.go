@@ -20,9 +20,9 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/crypto/ripemd160"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-crypto"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
+	. "github.com/annchain/ann-module/lib/go-common"
+	"github.com/annchain/ann-module/lib/go-crypto"
+	"github.com/annchain/ann-module/lib/go-wire"
 )
 
 // 2 + 1024 == 1026 total frame size

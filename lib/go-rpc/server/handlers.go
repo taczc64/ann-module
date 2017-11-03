@@ -30,10 +30,10 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/gorilla/websocket"
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-events"
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-rpc/types"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
+	. "github.com/annchain/ann-module/lib/go-common"
+	"github.com/annchain/ann-module/lib/go-events"
+	. "github.com/annchain/ann-module/lib/go-rpc/types"
+	"github.com/annchain/ann-module/lib/go-wire"
 )
 
 // Adds a route for each function in the funcMap, as well as general jsonrpc and websocket handlers for all functions.

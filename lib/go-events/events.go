@@ -19,7 +19,7 @@ import (
 
 	"go.uber.org/zap"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 // Generic event data can be typed and registered with tendermint/go-wire

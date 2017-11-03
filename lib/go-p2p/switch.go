@@ -24,8 +24,8 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-crypto"
+	. "github.com/annchain/ann-module/lib/go-common"
+	"github.com/annchain/ann-module/lib/go-crypto"
 )
 
 const (

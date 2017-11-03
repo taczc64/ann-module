@@ -19,8 +19,8 @@ import (
 	"os"
 	"strings"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire/expr"
+	. "github.com/annchain/ann-module/lib/go-common"
+	"github.com/annchain/ann-module/lib/go-wire/expr"
 )
 
 func main() {

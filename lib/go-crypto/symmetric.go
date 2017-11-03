@@ -17,7 +17,7 @@ package crypto
 import (
 	"errors"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 

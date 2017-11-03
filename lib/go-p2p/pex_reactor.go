@@ -23,8 +23,8 @@ import (
 
 	"go.uber.org/zap"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
+	. "github.com/annchain/ann-module/lib/go-common"
+	"github.com/annchain/ann-module/lib/go-wire"
 )
 
 var pexErrInvalidMessage = errors.New("Invalid PEX message")

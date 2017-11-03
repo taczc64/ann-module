@@ -21,7 +21,7 @@ import (
 
 	"go.uber.org/zap"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 type UPNPCapabilities struct {

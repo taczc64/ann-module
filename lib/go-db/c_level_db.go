@@ -8,7 +8,7 @@ import (
 
 	"github.com/jmhodges/levigo"
 
-	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "github.com/annchain/ann-module/lib/go-common"
 )
 
 func init() {

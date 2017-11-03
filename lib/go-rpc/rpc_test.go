@@ -19,10 +19,10 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-rpc/client"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-rpc/server"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-rpc/types"
-	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
+	"github.com/annchain/ann-module/lib/go-rpc/client"
+	"github.com/annchain/ann-module/lib/go-rpc/server"
+	"github.com/annchain/ann-module/lib/go-rpc/types"
+	"github.com/annchain/ann-module/lib/go-wire"
 )
 
 // Client and Server should work over tcp or unix sockets
