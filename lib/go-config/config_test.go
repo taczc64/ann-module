@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 var (

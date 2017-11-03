@@ -25,12 +25,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	cfg "github.com/annchain/ann-module/lib/go-config"
-	flow "github.com/annchain/ann-module/lib/go-flowrate/flowrate"
-	"github.com/annchain/ann-module/lib/go-wire"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	flow "gitlab.zhonganonline.com/ann/ann-module/lib/go-flowrate/flowrate"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
 )
 
 const (
@@ -108,15 +108,15 @@ type MConnection struct {
 	slogger *zap.SugaredLogger
 }
 
-func NewMConnection(logger *zap.Logger, config cfg.Config, conn net.Conn, chDescs []*ChannelDescriptor, onReceive receiveCbFunc, onError errorCbFunc) *MConnection {
+func NewMConnection(logger *zap.Logger, config *viper.Viper, conn net.Conn, chDescs []*ChannelDescriptor, onReceive receiveCbFunc, onError errorCbFunc) *MConnection {
 	mconn := &MConnection{
 		conn:        conn,
 		bufReader:   bufio.NewReaderSize(conn, minReadBufferSize),
 		bufWriter:   bufio.NewWriterSize(conn, minWriteBufferSize),
 		sendMonitor: flow.New(0, 0),
 		recvMonitor: flow.New(0, 0),
-		sendRate:    int64(config.GetInt(configKeySendRate)),
-		recvRate:    int64(config.GetInt(configKeyRecvRate)),
+		sendRate:    config.GetInt64(configKeySendRate),
+		recvRate:    config.GetInt64(configKeyRecvRate),
 		send:        make(chan struct{}, 1),
 		pong:        make(chan struct{}),
 		onReceive:   onReceive,
@@ -187,10 +187,9 @@ func (c *MConnection) String() string {
 }
 
 func (c *MConnection) flush() {
-	c.slogger.Debugw("Flush", "conn", c)
 	err := c.bufWriter.Flush()
 	if err != nil {
-		c.logger.Warn("MConnection flush failed", zap.String("error", err.Error()))
+		c.logger.Warn("MConnection flush failed", zap.Error(err))
 	}
 }
 
@@ -198,8 +197,7 @@ func (c *MConnection) flush() {
 func (c *MConnection) _recover() {
 	if r := recover(); r != nil {
 		stack := debug.Stack()
-		err := StackError{r, stack}
-		c.stopForError(err)
+		c.stopForError(StackError{r, stack})
 	}
 }
 
@@ -218,12 +216,10 @@ func (c *MConnection) Send(chID byte, msg interface{}) bool {
 		return false
 	}
 
-	c.slogger.Debugw("Send", "channel", chID, "conn", c, "msg", msg) //, "bytes", wire.BinaryBytes(msg))
-
 	// Send message to channel.
 	channel, ok := c.channelsIdx[chID]
 	if !ok {
-		c.slogger.Errorf("Cannot send bytes, unknown channel %X", chID)
+		c.logger.Error("Cannot send bytes, unknown channel", zap.ByteString("chID", []byte{chID}))
 		return false
 	}
 
@@ -247,12 +243,10 @@ func (c *MConnection) TrySend(chID byte, msg interface{}) bool {
 		return false
 	}
 
-	c.slogger.Debugw("TrySend", "channel", chID, "conn", c, "msg", msg)
-
 	// Send message to channel.
 	channel, ok := c.channelsIdx[chID]
 	if !ok {
-		c.slogger.Errorf("Cannot send bytes, unknown channel %X", chID)
+		c.logger.Error("Cannot send bytes, unknown channels", zap.ByteString("chID", []byte{chID}))
 		return false
 	}
 
@@ -299,12 +293,12 @@ FOR_LOOP:
 				channel.updateStats()
 			}
 		case <-c.pingTimer.Ch:
-			c.logger.Debug("Send Ping")
+			//c.logger.Debug("Send Ping")
 			wire.WriteByte(packetTypePing, c.bufWriter, &n, &err)
 			c.sendMonitor.Update(int(n))
 			c.flush()
 		case <-c.pong:
-			c.logger.Debug("Send Pong")
+			//c.logger.Debug("Send Pong")
 			wire.WriteByte(packetTypePong, c.bufWriter, &n, &err)
 			c.sendMonitor.Update(int(n))
 			c.flush()
@@ -330,7 +324,7 @@ FOR_LOOP:
 			// which is against go error handling principle
 
 			if strings.Contains(err.Error(), "connection reset by peer") {
-				c.logger.Debug("Sleeping " + c.connectResetWait.String() + " because of 'connection reset by peer'")
+				//c.logger.Debug("Sleeping " + c.connectResetWait.String() + " because of 'connection reset by peer'")
 				time.Sleep(c.connectResetWait)
 			} else {
 				c.slogger.Warnw("Connection failed @ sendRoutine", "conn", c, "error", err)
@@ -382,14 +376,12 @@ func (c *MConnection) sendMsgPacket() bool {
 	// Nothing to send?
 	if leastChannel == nil {
 		return true
-	} else {
-		// log.Info("Found a msgPacket to send")
 	}
 
 	// Make & send a msgPacket from this channel
 	n, err := leastChannel.writeMsgPacketTo(c.bufWriter)
 	if err != nil {
-		c.logger.Warn("Failed to write msgPacket", zap.String("error", err.Error()))
+		c.logger.Warn("Failed to write msgPacket", zap.Error(err))
 		c.stopForError(err)
 		return true
 	}
@@ -441,11 +433,11 @@ FOR_LOOP:
 		switch pktType {
 		case packetTypePing:
 			// TODO: prevent abuse, as they cause flush()'s.
-			c.logger.Debug("Receive Ping")
+			//c.logger.Debug("Receive Ping")
 			c.pong <- struct{}{}
 		case packetTypePong:
 			// do nothing
-			c.logger.Debug("Receive Pong")
+			//c.logger.Debug("Receive Pong")
 		case packetTypeMsg:
 			pkt, n, err := msgPacket{}, int(0), error(nil)
 			wire.ReadBinaryPtr(&pkt, c.bufReader, maxMsgPacketTotalSize, &n, &err)
@@ -459,7 +451,8 @@ FOR_LOOP:
 			}
 			channel, ok := c.channelsIdx[pkt.ChannelID]
 			if !ok || channel == nil {
-				PanicQ(Fmt("Unknown channel %X", pkt.ChannelID))
+				c.logger.Error("Unknown channel", zap.ByteString("ChannelID", []byte{pkt.ChannelID}))
+				continue FOR_LOOP
 			}
 			msgBytes, err := channel.recvMsgPacket(pkt)
 			if err != nil {
@@ -470,11 +463,11 @@ FOR_LOOP:
 				break FOR_LOOP
 			}
 			if msgBytes != nil {
-				c.logger.Debug("Received bytes", zap.Binary("chID", []byte{pkt.ChannelID}), zap.Binary("msgBytes", msgBytes))
+				//c.logger.Debug("Received bytes", zap.Binary("chID", []byte{pkt.ChannelID}), zap.Binary("msgBytes", msgBytes))
 				c.onReceive(pkt.ChannelID, msgBytes)
 			}
 		default:
-			PanicSanity(Fmt("Unknown message type %X", pktType))
+			c.logger.Error("Unknown message type", zap.ByteString("message type", []byte{pktType}))
 		}
 
 		// TODO: shouldn't this go in the sendRoutine?
@@ -646,7 +639,7 @@ func (ch *Channel) nextMsgPacket() msgPacket {
 // Not goroutine-safe
 func (ch *Channel) writeMsgPacketTo(w io.Writer) (n int, err error) {
 	packet := ch.nextMsgPacket()
-	ch.conn.slogger.Debugw("Write Msg Packet", "conn", ch.conn, "packet", packet)
+	//ch.conn.slogger.Debugw("Write Msg Packet", "conn", ch.conn, "packet", packet)
 	wire.WriteByte(packetTypeMsg, w, &n, &err)
 	wire.WriteBinary(packet, w, &n, &err)
 	if err == nil {

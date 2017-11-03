@@ -23,7 +23,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 // NOTE: Returned group has ticker stopped

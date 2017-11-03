@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"io/ioutil"
 
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 	"golang.org/x/crypto/openpgp/armor"
 )
 

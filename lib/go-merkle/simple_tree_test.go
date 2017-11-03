@@ -17,8 +17,8 @@ package merkle
 import (
 	"bytes"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	. "github.com/annchain/ann-module/lib/go-common/test"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common/test"
 
 	"testing"
 )

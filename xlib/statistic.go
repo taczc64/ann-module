@@ -20,7 +20,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/annchain/ann-module/xlog"
+	"gitlab.zhonganonline.com/ann/ann-module/xlog"
 )
 
 /*

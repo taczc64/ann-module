@@ -15,7 +15,7 @@
 package autofile
 
 import (
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 	"os"
 	"sync/atomic"
 	"syscall"

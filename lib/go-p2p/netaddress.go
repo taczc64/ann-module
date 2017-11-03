@@ -5,13 +5,15 @@
 package p2p
 
 import (
+	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"time"
 
 	"go.uber.org/zap"
 
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 type NetAddress struct {
@@ -35,28 +37,42 @@ func NewNetAddress(logger *zap.Logger, addr net.Addr) *NetAddress {
 	return NewNetAddressIPPort(ip, port)
 }
 
+// NewNetAddressStrings returns an array of NetAddress'es build using
+// the provided strings.
+func NewNetAddressStrings(addrs []string) ([]*NetAddress, error) {
+	netAddrs := make([]*NetAddress, len(addrs))
+	for i, addr := range addrs {
+		netAddr, err := NewNetAddressString(addr)
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("Error in address %s: %v", addr, err))
+		}
+		netAddrs[i] = netAddr
+	}
+	return netAddrs, nil
+}
+
 // Also resolves the host if host is not an IP.
-func NewNetAddressString(addr string) *NetAddress {
+func NewNetAddressString(addr string) (*NetAddress, error) {
 	host, portStr, err := net.SplitHostPort(addr)
 	if err != nil {
-		PanicSanity(err)
+		return nil, err
 	}
 	ip := net.ParseIP(host)
 	if ip == nil {
 		if len(host) > 0 {
 			ips, err := net.LookupIP(host)
 			if err != nil {
-				PanicSanity(err)
+				return nil, err
 			}
 			ip = ips[0]
 		}
 	}
 	port, err := strconv.ParseUint(portStr, 10, 16)
 	if err != nil {
-		PanicSanity(err)
+		return nil, err
 	}
 	na := NewNetAddressIPPort(ip, uint16(port))
-	return na
+	return na, nil
 }
 
 func NewNetAddressIPPort(ip net.IP, port uint16) *NetAddress {

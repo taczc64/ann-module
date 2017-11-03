@@ -17,7 +17,7 @@ package wire
 import (
 	"io"
 
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 func WriteByteSlice(bz []byte, w io.Writer, n *int, err *error) {

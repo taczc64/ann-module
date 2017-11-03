@@ -22,7 +22,7 @@ import (
 	"runtime"
 
 	_ "github.com/golang/glog"
-	"github.com/annchain/ann-module/lib/astaxie/beego/logs"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/astaxie/beego/logs"
 )
 
 // RFC5424 log message levels.

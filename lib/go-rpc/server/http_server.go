@@ -13,9 +13,9 @@ import (
 
 	"go.uber.org/zap"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	. "github.com/annchain/ann-module/lib/go-rpc/types"
-	//"github.com/annchain/ann-module/lib/go-wire"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-rpc/types"
+	//"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
 )
 
 func StartHTTPServer(logger *zap.Logger, listenAddr string, handler http.Handler) (listener net.Listener, err error) {

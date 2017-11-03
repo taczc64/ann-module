@@ -22,7 +22,7 @@ import (
 	"io"
 	"sync"
 
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 var gRandInfo *randInfo

@@ -23,8 +23,8 @@ import (
 
 	"go.uber.org/zap"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	"github.com/annchain/ann-module/lib/go-wire"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
 )
 
 var pexErrInvalidMessage = errors.New("Invalid PEX message")
@@ -83,7 +83,11 @@ func (pexR *PEXReactor) GetChannels() []*ChannelDescriptor {
 // Implements Reactor
 func (pexR *PEXReactor) AddPeer(peer *Peer) {
 	// Add the peer to the address book
-	netAddr := NewNetAddressString(peer.ListenAddr)
+	netAddr, err := NewNetAddressString(peer.ListenAddr)
+	if err != nil {
+		pexR.logger.Warn("Error to Net Address String", zap.Error(err))
+		return
+	}
 	if peer.IsOutbound() {
 		if pexR.book.NeedMoreAddrs() {
 			pexR.RequestPEX(peer)

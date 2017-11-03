@@ -24,8 +24,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/gorilla/websocket"
-	. "github.com/annchain/ann-module/lib/go-common"
-	"github.com/annchain/ann-module/lib/go-rpc/types"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-rpc/types"
 )
 
 const (

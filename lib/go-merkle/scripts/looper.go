@@ -17,9 +17,9 @@ package main
 import (
 	"fmt"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	"github.com/annchain/ann-module/lib/go-db"
-	"github.com/annchain/ann-module/lib/go-merkle"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-db"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-merkle"
 )
 
 func main() {

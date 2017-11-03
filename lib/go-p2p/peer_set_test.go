@@ -18,7 +18,7 @@ import (
 	"math/rand"
 	"testing"
 
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 // Returns an empty dummy peer

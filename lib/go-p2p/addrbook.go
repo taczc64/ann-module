@@ -7,6 +7,7 @@ package p2p
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"math"
 	"math/rand"
 	"net"
@@ -16,8 +17,8 @@ import (
 
 	"go.uber.org/zap"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	"github.com/annchain/ann-module/lib/go-crypto"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-crypto"
 )
 
 const (
@@ -375,6 +376,11 @@ func (a *AddrBook) loadFromFile(filePath string) bool {
 	return true
 }
 
+func (a *AddrBook) Save() {
+	a.logger.Info("Saving AddrBook to file", zap.Int("size", a.Size()))
+	a.saveToFile(a.filePath)
+}
+
 /* Private methods */
 
 func (a *AddrBook) saveRoutine() {
@@ -519,6 +525,18 @@ func (a *AddrBook) pickOldest(bucketType byte, bucketIdx int) *knownAddress {
 		}
 	}
 	return oldest
+}
+
+func (a *AddrBook) String() string {
+	addrs := ""
+	for k, _ := range a.addrLookup {
+		if len(addrs) == 0 {
+			addrs = k
+			continue
+		}
+		addrs = fmt.Sprintf("%v,%v", addrs, k)
+	}
+	return addrs
 }
 
 func (a *AddrBook) addAddress(addr, src *NetAddress) {

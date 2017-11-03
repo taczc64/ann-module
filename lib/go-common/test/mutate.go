@@ -15,7 +15,7 @@
 package test
 
 import (
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 // Contract: !bytes.Equal(input, output) && len(input) >= len(output)

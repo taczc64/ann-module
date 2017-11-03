@@ -19,9 +19,9 @@ import (
 	"container/list"
 	"sync"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	dbm "github.com/annchain/ann-module/lib/go-db"
-	wire "github.com/annchain/ann-module/lib/go-wire"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	dbm "gitlab.zhonganonline.com/ann/ann-module/lib/go-db"
+	wire "gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
 )
 
 /*

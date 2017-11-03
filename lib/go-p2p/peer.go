@@ -19,11 +19,11 @@ import (
 	"io"
 	"net"
 
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	cfg "github.com/annchain/ann-module/lib/go-config"
-	"github.com/annchain/ann-module/lib/go-wire"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
 )
 
 type (
@@ -72,7 +72,7 @@ func peerHandshake(conn net.Conn, sw *Switch) (*NodeInfo, error) {
 }
 
 // NOTE: call peerHandshake on conn before calling newPeer().
-func newPeer(logger *zap.Logger, config cfg.Config, conn net.Conn, peerNodeInfo *NodeInfo, outbound bool, reactorsByCh map[byte]Reactor, chDescs []*ChannelDescriptor, onPeerError func(*Peer, interface{})) *Peer {
+func newPeer(logger *zap.Logger, config *viper.Viper, conn net.Conn, peerNodeInfo *NodeInfo, outbound bool, reactorsByCh map[byte]Reactor, chDescs []*ChannelDescriptor, onPeerError func(*Peer, interface{})) *Peer {
 	var p *Peer
 	onReceive := func(chID byte, msgBytes []byte) {
 		reactor := reactorsByCh[chID]

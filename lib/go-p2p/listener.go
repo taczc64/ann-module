@@ -22,8 +22,8 @@ import (
 
 	"go.uber.org/zap"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	"github.com/annchain/ann-module/lib/go-p2p/upnp"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-p2p/upnp"
 )
 
 type Listener interface {
@@ -66,7 +66,7 @@ func splitHostPort(addr string) (host string, port int) {
 }
 
 // skipUPNP: If true, does not try getUPNPExternalAddress()
-func NewDefaultListener(logger *zap.Logger, protocol string, lAddr string, skipUPNP bool) Listener {
+func NewDefaultListener(logger *zap.Logger, protocol string, lAddr string, skipUPNP bool) (Listener, error) {
 	// Local listen IP & port
 	lAddrIP, lAddrPort := splitHostPort(lAddr)
 
@@ -82,14 +82,18 @@ func NewDefaultListener(logger *zap.Logger, protocol string, lAddr string, skipU
 		}
 	}
 	if err != nil {
-		PanicCrisis(err)
+		logger.Error("fail to create listener", zap.Error(err))
+		return nil, err
 	}
 	// Actual listener local IP & port
-	listenerIP, listenerPort := splitHostPort(listener.Addr().String())
-	logger.Debug("Local listener", zap.String("ip", listenerIP), zap.Int("port", listenerPort))
+	_, listenerPort := splitHostPort(listener.Addr().String())
 
 	// Determine internal address...
-	var intAddr *NetAddress = NewNetAddressString(lAddr)
+	var intAddr *NetAddress
+	intAddr, err = NewNetAddressString(lAddr)
+	if err != nil {
+		PanicCrisis(err)
+	}
 
 	// Determine external address...
 	var extAddr *NetAddress
@@ -104,7 +108,8 @@ func NewDefaultListener(logger *zap.Logger, protocol string, lAddr string, skipU
 		extAddr = getNaiveExternalAddress(listenerPort)
 	}
 	if extAddr == nil {
-		PanicCrisis("Could not determine external address!")
+		logger.Error("Could not determine external address!")
+		return nil, fmt.Errorf("could not determine external address")
 	}
 
 	dl := &DefaultListener{
@@ -117,7 +122,7 @@ func NewDefaultListener(logger *zap.Logger, protocol string, lAddr string, skipU
 	}
 	dl.BaseService = *NewBaseService(logger, "DefaultListener", dl)
 	dl.Start() // Started upon construction
-	return dl
+	return dl, nil
 }
 
 func (l *DefaultListener) OnStart() error {

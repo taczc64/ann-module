@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"net/http"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	rpcserver "github.com/annchain/ann-module/lib/go-rpc/server"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	rpcserver "gitlab.zhonganonline.com/ann/ann-module/lib/go-rpc/server"
 )
 
 var routes = map[string]*rpcserver.RPCFunc{

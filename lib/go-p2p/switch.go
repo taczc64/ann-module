@@ -21,11 +21,17 @@ import (
 	"net"
 	"time"
 
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
-	. "github.com/annchain/ann-module/lib/go-common"
-	cfg "github.com/annchain/ann-module/lib/go-config"
-	"github.com/annchain/ann-module/lib/go-crypto"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-crypto"
+)
+
+const (
+	_ byte = iota
+	ConnActionP2P
+	ConnActionGen
 )
 
 type Reactor interface {
@@ -71,7 +77,7 @@ incoming messages are received on the reactor.
 type Switch struct {
 	BaseService
 
-	config       cfg.Config
+	config       *viper.Viper
 	listeners    []Listener
 	reactors     map[string]Reactor
 	chDescs      []*ChannelDescriptor
@@ -91,6 +97,9 @@ type Switch struct {
 
 	logger  *zap.Logger
 	slogger *zap.SugaredLogger
+
+	genesisBytes     []byte
+	genesisUnmarshal func([]byte) error
 }
 
 var (
@@ -98,7 +107,7 @@ var (
 	ErrSwitchMaxPeersPerIPRange = errors.New("IP range has too many peers")
 )
 
-func NewSwitch(logger *zap.Logger, config cfg.Config) *Switch {
+func NewSwitch(logger *zap.Logger, config *viper.Viper, genesis []byte) *Switch {
 	setConfigDefaults(config)
 
 	sw := &Switch{
@@ -111,6 +120,7 @@ func NewSwitch(logger *zap.Logger, config cfg.Config) *Switch {
 		nodeInfo:     nil,
 		logger:       logger,
 		slogger:      logger.Sugar(),
+		genesisBytes: genesis,
 	}
 	sw.BaseService = *NewBaseService(logger, "P2P Switch", sw)
 	return sw
@@ -365,18 +375,59 @@ func (sw *Switch) startInitPeer(peer *Peer) {
 
 // Dial a list of seeds in random order
 // Spawns a go routine for each dial
-func (sw *Switch) DialSeeds(seeds []string) {
+// permute the list, dial them in random order.
+func (sw *Switch) DialSeeds(addrBook *AddrBook, seeds []string) error {
 	// permute the list, dial them in random order.
-	perm := rand.Perm(len(seeds))
+	netAddrs, err := NewNetAddressStrings(seeds)
+	if err != nil {
+		return err
+	}
+
+	if addrBook != nil {
+		// add seeds to `addrBook`
+		ourAddrS := sw.nodeInfo.ListenAddr
+		ourAddr, _ := NewNetAddressString(ourAddrS)
+		for _, netAddr := range netAddrs {
+			// do not add ourselves
+			if netAddr.Equals(ourAddr) {
+				continue
+			}
+			addrBook.AddAddress(netAddr, ourAddr)
+		}
+		addrBook.Save()
+	}
+	var perm []int
+
+	if len(sw.genesisBytes) != 0 {
+		perm = rand.Perm(len(seeds))
+	} else {
+		perm = rand.Perm(len(seeds) - 1)
+		for x := range perm {
+			perm[x]++
+		}
+		netAddr, err := NewNetAddressString(seeds[0])
+		if err != nil {
+			sw.logger.Error("fail to new net address string", zap.String("seed", seeds[0]), zap.Error(err))
+			return err
+		}
+		if err = sw.downloadGenesisDialSeed(netAddr); err != nil {
+			sw.logger.Error("fail to download genesis", zap.Error(err))
+			return err
+		}
+	}
+
 	for i := 0; i < len(perm); i++ {
 		go func(i int) {
 			time.Sleep(time.Duration(rand.Int63n(3000)) * time.Millisecond)
 			j := perm[i]
-			addr := NewNetAddressString(seeds[j])
-
+			addr, err := NewNetAddressString(seeds[j])
+			if err != nil {
+				sw.logger.Error("Error to net address string", zap.Error(err))
+			}
 			sw.dialSeed(addr)
 		}(i)
 	}
+	return nil
 }
 
 func (sw *Switch) dialSeed(addr *NetAddress) {
@@ -384,20 +435,65 @@ func (sw *Switch) dialSeed(addr *NetAddress) {
 	if err != nil {
 		sw.logger.Error("Error dialing seed", zap.String("error", err.Error()))
 		return
-	} else {
-		sw.logger.Info("Connected to seed", zap.Stringer("peer", peer))
 	}
+	sw.logger.Info("Connected to seed", zap.Stringer("peer", peer))
 }
 
-func (sw *Switch) DialPeerWithAddress(addr *NetAddress) (*Peer, error) {
-	sw.logger.Debug("Dialing address", zap.Stringer("address", addr))
+func (sw *Switch) downloadGenesisDialSeed(addr *NetAddress) error {
 	sw.dialing.Set(addr.IP.String(), addr)
 	defer sw.dialing.Delete(addr.IP.String())
 
-	conn, err := addr.DialTimeout(time.Duration(
-		sw.config.GetInt(configKeyDialTimeoutSeconds)) * time.Second)
+	conn, err := addr.DialTimeout(time.Duration(sw.config.GetInt(configKeyDialTimeoutSeconds)) * time.Second)
 	if err != nil {
 		sw.logger.Debug("Failed dialing address", zap.Stringer("address", addr), zap.String("error", err.Error()))
+		return err
+	}
+
+	if _, err := conn.Write([]byte{ConnActionGen}); err != nil {
+		return err
+	}
+	recv := make([]byte, 1024*1024*4)
+	rn, err := conn.Read(recv)
+	if err != nil {
+		return err
+	}
+	bytes := recv[:rn]
+	if err := sw.genesisUnmarshal(bytes); err != nil {
+		return err
+	}
+	sw.genesisBytes = bytes
+
+	if _, err := conn.Write([]byte{ConnActionP2P}); err != nil {
+		return err
+	}
+
+	if sw.config.GetBool(configFuzzEnable) {
+		conn = FuzzConn(sw.config, conn)
+	}
+	peer, err := sw.AddPeerWithConnection(conn, true)
+	if err != nil {
+		sw.slogger.Debugw("Failed adding peer", "address", addr, "conn", conn, "error", err)
+		return err
+	}
+	sw.logger.Info("Dialed and added peer", zap.Stringer("address", addr), zap.Stringer("peer", peer))
+
+	return nil
+}
+
+func (sw *Switch) SetGenesisUnmarshal(cb func([]byte) error) {
+	sw.genesisUnmarshal = cb
+}
+
+func (sw *Switch) DialPeerWithAddress(addr *NetAddress) (*Peer, error) {
+	sw.dialing.Set(addr.IP.String(), addr)
+	defer sw.dialing.Delete(addr.IP.String())
+
+	conn, err := addr.DialTimeout(time.Duration(sw.config.GetInt(configKeyDialTimeoutSeconds)) * time.Second)
+	if err != nil {
+		sw.logger.Debug("Failed dialing address", zap.Stringer("address", addr), zap.String("error", err.Error()))
+		return nil, err
+	}
+	if _, err := conn.Write([]byte{ConnActionP2P}); err != nil {
 		return nil, err
 	}
 	if sw.config.GetBool(configFuzzEnable) {
@@ -422,7 +518,6 @@ func (sw *Switch) IsDialing(addr *NetAddress) bool {
 // NOTE: Broadcast uses goroutines, so order of broadcast may not be preserved.
 func (sw *Switch) Broadcast(chID byte, msg interface{}) chan bool {
 	successChan := make(chan bool, len(sw.peers.List()))
-	sw.slogger.Debugw("Broadcast", "channel", chID, "msg", msg)
 	for _, peer := range sw.peers.List() {
 		go func(peer *Peer) {
 			success := peer.Send(chID, msg)
@@ -481,33 +576,59 @@ func (sw *Switch) removePeerFromReactors(peer *Peer, reason interface{}) {
 }
 
 func (sw *Switch) listenerRoutine(l Listener) {
+OUTER:
 	for {
 		inConn, ok := <-l.Connections()
 		if !ok {
 			break
 		}
 
-		// ignore connection if we already have enough
-		maxPeers := sw.config.GetInt(configKeyMaxNumPeers)
-		if maxPeers <= sw.peers.Size() {
-			sw.logger.Debug("Ignoring inbound connection: already have enough peers", zap.Stringer("address", inConn.RemoteAddr()), zap.Int("numPeers", sw.peers.Size()), zap.Int("max", maxPeers))
-			continue
+		// before any further actions, we can do something with the connection which is not part of the p2p protocol
+		recv := make([]byte, 4096)
+	INNER:
+		for {
+			rn, err := inConn.Read(recv)
+			if err != nil {
+				inConn.Close()
+				continue OUTER // this connection doesn't play
+			}
+			bytes := recv[:rn]
+			switch bytes[0] {
+			case ConnActionP2P:
+				// ignore connection if we already have enough
+				maxPeers := sw.config.GetInt(configKeyMaxNumPeers)
+				if maxPeers <= sw.peers.Size() {
+					sw.logger.Debug("Ignoring inbound connection: already have enough peers", zap.Stringer("address", inConn.RemoteAddr()), zap.Int("numPeers", sw.peers.Size()), zap.Int("max", maxPeers))
+					continue OUTER
+				}
+				if sw.config.GetBool(configFuzzEnable) {
+					inConn = FuzzConn(sw.config, inConn)
+				}
+				// New inbound connection!
+				if _, err := sw.AddPeerWithConnection(inConn, false); err != nil {
+					sw.logger.Info("Ignoring inbound connection: error on AddPeerWithConnection", zap.Stringer("address", inConn.RemoteAddr()), zap.String("error", err.Error()))
+				}
+				continue OUTER
+				// NOTE: We don't yet have the listening port of the
+				// remote (if they have a listener at all).
+				// The peerHandshake will handle that
+			case ConnActionGen:
+				wn, err := inConn.Write(sw.genesisBytes)
+				if err != nil {
+					sw.logger.Error("fail to send genesisBytes to peer before the secure this connection", zap.Error(err))
+					inConn.Close()
+					continue OUTER
+				}
+				if wn != len(sw.genesisBytes) {
+					sw.logger.Error("sent imcomplete genesisBytes")
+					inConn.Close()
+					continue OUTER
+				}
+				continue INNER
+			default:
+				continue INNER
+			}
 		}
-
-		if sw.config.GetBool(configFuzzEnable) {
-			inConn = FuzzConn(sw.config, inConn)
-		}
-
-		// New inbound connection!
-		_, err := sw.AddPeerWithConnection(inConn, false)
-		if err != nil {
-			sw.logger.Info("Ignoring inbound connection: error on AddPeerWithConnection", zap.Stringer("address", inConn.RemoteAddr()), zap.String("error", err.Error()))
-			continue
-		}
-
-		// NOTE: We don't yet have the listening port of the
-		// remote (if they have a listener at all).
-		// The peerHandshake will handle that
 	}
 
 	// cleanup
@@ -531,7 +652,7 @@ type SwitchEventDonePeer struct {
 // If connect==Connect2Switches, the switches will be fully connected.
 // initSwitch defines how the ith switch should be initialized (ie. with what reactors).
 // NOTE: panics if any switch fails to start.
-func MakeConnectedSwitches(logger *zap.Logger, cfg *cfg.Config, n int, initSwitch func(int, *Switch) *Switch, connect func([]*Switch, int, int)) []*Switch {
+func MakeConnectedSwitches(logger *zap.Logger, cfg *viper.Viper, n int, initSwitch func(int, *Switch) *Switch, connect func([]*Switch, int, int)) []*Switch {
 	switches := make([]*Switch, n)
 	for i := 0; i < n; i++ {
 		switches[i] = makeSwitch(logger, cfg, i, "testing", "123.123.123", initSwitch)
@@ -588,11 +709,11 @@ func StartSwitches(switches []*Switch) error {
 	return nil
 }
 
-func makeSwitch(logger *zap.Logger, cfg *cfg.Config, i int, network, version string, initSwitch func(int, *Switch) *Switch) *Switch {
+func makeSwitch(logger *zap.Logger, cfg *viper.Viper, i int, network, version string, initSwitch func(int, *Switch) *Switch) *Switch {
 	privKey := crypto.GenPrivKeyEd25519()
 	// new switch, add reactors
 	// TODO: let the config be passed in?
-	s := initSwitch(i, NewSwitch(logger, *cfg))
+	s := initSwitch(i, NewSwitch(logger, cfg, []byte{}))
 	s.SetNodeInfo(&NodeInfo{
 		PubKey:  privKey.PubKey().(crypto.PubKeyEd25519),
 		Moniker: Fmt("switch%d", i),

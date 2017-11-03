@@ -15,7 +15,7 @@
 package p2p
 
 import (
-	cfg "github.com/annchain/ann-module/lib/go-config"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -39,7 +39,7 @@ const (
 	configFuzzProbSleep            = "fuzz_prob_sleep"
 )
 
-func setConfigDefaults(config cfg.Config) {
+func setConfigDefaults(config *viper.Viper) {
 	// Switch default config
 	config.SetDefault(configKeyDialTimeoutSeconds, 3)
 	config.SetDefault(configKeyHandshakeTimeoutSeconds, 20)
@@ -58,4 +58,6 @@ func setConfigDefaults(config cfg.Config) {
 	config.SetDefault(configFuzzProbDropRW, 0.2)
 	config.SetDefault(configFuzzProbDropConn, 0.00)
 	config.SetDefault(configFuzzProbSleep, 0.00)
+
+	config.SetDefault("connection_reset_wait", 300)
 }

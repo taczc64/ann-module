@@ -29,7 +29,7 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 /*

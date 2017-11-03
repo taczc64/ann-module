@@ -22,10 +22,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	. "github.com/annchain/ann-module/lib/go-common"
-	. "github.com/annchain/ann-module/lib/go-common/test"
-	"github.com/annchain/ann-module/lib/go-db"
-	"github.com/annchain/ann-module/lib/go-wire"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common/test"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-db"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-wire"
 
 	"runtime"
 	"testing"

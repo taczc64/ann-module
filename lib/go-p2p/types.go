@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/annchain/ann-module/lib/go-crypto"
+	"gitlab.zhonganonline.com/ann/ann-module/lib/go-crypto"
 )
 
 const maxNodeInfoSize = 10240 // 10Kb

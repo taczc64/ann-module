@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	cfg "github.com/annchain/ann-module/lib/go-config"
+	"github.com/spf13/viper"
 )
 
 //--------------------------------------------------------
@@ -33,7 +33,7 @@ const (
 	FuzzModeDelay = "delay"
 )
 
-func FuzzConn(config cfg.Config, conn net.Conn) net.Conn {
+func FuzzConn(config *viper.Viper, conn net.Conn) net.Conn {
 	return &FuzzedConnection{
 		conn:   conn,
 		start:  time.After(time.Second * 10), // so we have time to do peer handshakes and get set up
@@ -49,7 +49,7 @@ type FuzzedConnection struct {
 	start <-chan time.Time
 
 	// fuzz params
-	params cfg.Config
+	params *viper.Viper
 }
 
 func (fc *FuzzedConnection) randomDuration() time.Duration {

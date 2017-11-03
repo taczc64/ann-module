@@ -21,7 +21,7 @@ import (
 
 	"golang.org/x/crypto/ripemd160"
 
-	. "github.com/annchain/ann-module/lib/go-common"
+	. "gitlab.zhonganonline.com/ann/ann-module/lib/go-common"
 )
 
 func BinaryBytes(o interface{}) []byte {
